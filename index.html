@@ -485,9 +485,9 @@ function submitAnswer(qi) {
     fb.innerHTML = `
       <strong>❌ Pas tout à fait…</strong>${QUESTIONS[qi].feedback.ko}
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f5c6cb;">
-        <span style="font-size:.9rem;display:block;margin-bottom:8px;">Voulez-vous reprendre le quiz depuis le début ?</span>
-        <button class="btn btn-reset" onclick="resetQuiz()" style="font-size:.9rem;padding:8px 18px;">
-          🔁 Recommencer depuis le début
+        <span style="font-size:.9rem;display:block;margin-bottom:8px;">Voulez-vous réessayer cette question ?</span>
+        <button class="btn btn-reset" onclick="retryQuestion(${qi})" style="font-size:.9rem;padding:8px 18px;">
+          🔄 Réessayer cette question
         </button>
       </div>`;
   }
@@ -553,6 +553,19 @@ function showResults() {
       ${breakdown}
     </div>
   `;
+}
+
+function retryQuestion(qi) {
+  // Réinitialise uniquement la question en erreur
+  answers[qi] = null;
+  submitted[qi] = false;
+  // Réaffiche les options et masque le feedback
+  const opts = document.querySelectorAll(`#opts-${qi} .opt`);
+  opts.forEach(o => { o.className = 'opt'; o.style.pointerEvents = ''; });
+  document.getElementById(`fb-${qi}`).style.display = 'none';
+  document.getElementById(`submit-${qi}`).style.display = 'inline-block';
+  document.getElementById(`submit-${qi}`).disabled = true;
+  document.getElementById(`next-${qi}`).style.display = 'none';
 }
 
 function resetQuiz() {
