@@ -556,12 +556,16 @@ function showResults() {
 }
 
 function retryQuestion(qi) {
-  // Réinitialise uniquement la question en erreur
   answers[qi] = null;
   submitted[qi] = false;
-  // Réaffiche les options et masque le feedback
-  const opts = document.querySelectorAll(`#opts-${qi} .opt`);
-  opts.forEach(o => { o.className = 'opt'; o.style.pointerEvents = ''; });
+  // Réactiver et réinitialiser chaque radio + label
+  QUESTIONS[qi].options.forEach((_, oi) => {
+    const radio = document.getElementById(`q${qi}o${oi}`);
+    radio.disabled = false;
+    radio.checked = false;
+    const lbl = document.querySelector(`#q${qi}o${oi} + label`);
+    lbl.classList.remove('correct', 'wrong');
+  });
   document.getElementById(`fb-${qi}`).style.display = 'none';
   document.getElementById(`submit-${qi}`).style.display = 'inline-block';
   document.getElementById(`submit-${qi}`).disabled = true;
