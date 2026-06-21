@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Module 1 — Introduction à PostgreSQL | GéoVille Academy</title>
+<title>Quiz Module 1 — Introduction à PostgreSQL | BakusGéo</title>
 <style>
   :root {
     --blue1: #1F4E79;
@@ -233,7 +233,7 @@
 <header>
   <div class="badge">Module 1 — Niveau Débutant</div>
   <h1>Quiz — Introduction à PostgreSQL</h1>
-  <p>Cours PostgreSQL/PostGIS · GéoVille Academy</p>
+  <p>Cours PostgreSQL/PostGIS · BakusGéo</p>
   <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
 </header>
 
@@ -246,7 +246,7 @@
 </div>
 
 <footer>
-  <strong>GéoVille Academy</strong> — Cours PostgreSQL / PostGIS · Module 1
+  <strong>BakusGéo</strong> — Cours PostgreSQL / PostGIS · Module 1
 </footer>
 
 <script>
@@ -479,9 +479,18 @@ function submitAnswer(qi) {
   // Feedback
   const fb = document.getElementById(`fb-${qi}`);
   fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
-  fb.innerHTML = isCorrect
-    ? `<strong>✅ Bonne réponse !</strong>${QUESTIONS[qi].feedback.ok}`
-    : `<strong>❌ Pas tout à fait…</strong>${QUESTIONS[qi].feedback.ko}`;
+  if (isCorrect) {
+    fb.innerHTML = `<strong>✅ Bonne réponse !</strong>${QUESTIONS[qi].feedback.ok}`;
+  } else {
+    fb.innerHTML = `
+      <strong>❌ Pas tout à fait…</strong>${QUESTIONS[qi].feedback.ko}
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f5c6cb;">
+        <span style="font-size:.9rem;display:block;margin-bottom:8px;">Voulez-vous reprendre le quiz depuis le début ?</span>
+        <button class="btn btn-reset" onclick="resetQuiz()" style="font-size:.9rem;padding:8px 18px;">
+          🔁 Recommencer depuis le début
+        </button>
+      </div>`;
+  }
   fb.style.display = 'block';
 
   document.getElementById(`submit-${qi}`).style.display = 'none';
