@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Module 2 — Installation & Configuration | BakusGéo</title>
+<style>
+  :root {
+    --blue1: #1F4E79;
+    --blue2: #2E75B6;
+    --blue3: #EBF3FA;
+    --green: #28A745;
+    --red:   #DC3545;
+    --gold:  #FFC107;
+    --gray:  #6C757D;
+    --light: #F8F9FA;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    background: linear-gradient(135deg, #EBF3FA 0%, #ffffff 100%);
+    min-height: 100vh;
+    color: #222;
+  }
+
+  /* ── Navigation inter-modules ── */
+  .module-nav {
+    background: #163A5F;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .module-nav a {
+    color: rgba(255,255,255,.7);
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.25);
+    transition: background .2s, color .2s;
+  }
+  .module-nav a:hover { background: rgba(255,255,255,.15); color: white; }
+  .module-nav a.active { background: var(--blue2); color: white; border-color: var(--blue2); }
+
+  header {
+    background: var(--blue1);
+    color: white;
+    padding: 28px 20px 20px;
+    text-align: center;
+  }
+  header .badge {
+    display: inline-block;
+    background: var(--blue2);
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  header h1 { font-size: 1.8rem; margin-bottom: 6px; }
+  header p  { font-size: 1rem; opacity: .85; font-style: italic; }
+  .progress-bar-wrap {
+    background: rgba(255,255,255,.2);
+    border-radius: 20px;
+    height: 8px;
+    margin: 18px auto 0;
+    max-width: 400px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    background: var(--gold);
+    height: 100%;
+    width: 0%;
+    transition: width .4s ease;
+    border-radius: 20px;
+  }
+  main { max-width: 780px; margin: 40px auto 60px; padding: 0 16px; }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(31,78,121,.12);
+    padding: 36px 40px;
+    margin-bottom: 28px;
+    display: none;
+    animation: fadeIn .35s ease;
+  }
+  .card.active { display: block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+  .q-num { font-family: Arial,sans-serif; font-size:12px; color:var(--blue2); font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
+  .q-text { font-size:1.15rem; line-height:1.6; color:var(--blue1); font-weight:bold; margin-bottom:24px; }
+  .q-hint { font-size:.9rem; font-style:italic; color:var(--gray); margin-top:-16px; margin-bottom:20px; }
+
+  .options { list-style:none; }
+  .options li { margin-bottom:12px; }
+  .options label { display:flex; align-items:flex-start; gap:14px; padding:14px 18px; border:2px solid #dee2e6; border-radius:8px; cursor:pointer; transition:border-color .2s,background .2s; font-size:1rem; line-height:1.5; }
+  .options label:hover { border-color:var(--blue2); background:var(--blue3); }
+  .options input[type="radio"] { display:none; }
+  .options input[type="radio"] + label .dot { flex-shrink:0; width:22px; height:22px; border:2px solid #adb5bd; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:1px; transition:border-color .2s,background .2s; }
+  .options input[type="radio"]:checked + label .dot { border-color:var(--blue2); background:var(--blue2); }
+  .options input[type="radio"]:checked + label .dot::after { content:''; width:8px; height:8px; background:white; border-radius:50%; }
+  .options input[type="radio"]:checked + label { border-color:var(--blue2); background:var(--blue3); }
+  .options label.correct  { border-color:var(--green)!important; background:#e8f8e8!important; }
+  .options label.wrong    { border-color:var(--red)!important;   background:#ffe8e8!important; }
+  .options label.correct .dot { border-color:var(--green)!important; background:var(--green)!important; }
+  .options label.wrong   .dot { border-color:var(--red)!important;   background:var(--red)!important; }
+
+  .feedback { margin-top:20px; padding:16px 20px; border-radius:8px; font-size:.95rem; line-height:1.6; display:none; }
+  .feedback.correct { background:#d4edda; border-left:5px solid var(--green); color:#155724; }
+  .feedback.wrong   { background:#f8d7da; border-left:5px solid var(--red);   color:#721c24; }
+  .feedback strong  { display:block; margin-bottom:4px; }
+
+  .btn-row { margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; }
+  .btn { padding:12px 28px; border:none; border-radius:8px; font-size:1rem; font-family:Arial,sans-serif; cursor:pointer; transition:transform .15s,box-shadow .15s; }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.15); }
+  .btn-primary { background:var(--blue1); color:white; }
+  .btn-next    { background:var(--blue2); color:white; }
+  .btn-reset   { background:white; border:2px solid var(--blue2); color:var(--blue2); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  #results { display:none; background:white; border-radius:12px; box-shadow:0 4px 24px rgba(31,78,121,.12); padding:48px 40px; text-align:center; animation:fadeIn .4s ease; }
+  .score-circle { width:130px; height:130px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto 28px; font-size:2.2rem; font-weight:bold; font-family:Arial,sans-serif; border:6px solid; }
+  .score-circle .score-label { font-size:.75rem; font-weight:normal; letter-spacing:1px; }
+  .score-A { border-color:var(--green); color:var(--green); background:#e8f8e8; }
+  .score-B { border-color:var(--blue2); color:var(--blue2); background:var(--blue3); }
+  .score-C { border-color:var(--gold);  color:#856404;      background:#fff3cd; }
+  .score-D { border-color:var(--red);   color:var(--red);   background:#ffe8e8; }
+  #results h2 { font-size:1.7rem; color:var(--blue1); margin-bottom:10px; }
+  #results .msg { font-size:1.05rem; color:#444; margin-bottom:32px; max-width:500px; margin-left:auto; margin-right:auto; }
+  .breakdown { text-align:left; border-top:1px solid #dee2e6; padding-top:24px; margin-top:8px; }
+  .breakdown h3 { color:var(--blue1); margin-bottom:16px; font-size:1.1rem; }
+  .breakdown-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:.92rem; }
+  .breakdown-item .icon { font-size:1.2rem; flex-shrink:0; }
+  .breakdown-item .q-label { color:var(--gray); font-size:.82rem; }
+
+  footer { text-align:center; padding:24px; font-family:Arial,sans-serif; font-size:.85rem; color:var(--gray); }
+  footer strong { color:var(--blue1); }
+</style>
+</head>
+<body>
+
+<nav class="module-nav">
+  <a href="index.html">Module 1 — Introduction</a>
+  <a href="quiz-module-2.html" class="active">Module 2 — Installation</a>
+  <a href="quiz-module-3.html">Module 3 — SQL DDL/DML</a>
+</nav>
+
+<header>
+  <div class="badge">Module 2 — Niveau Débutant</div>
+  <h1>Quiz — Installation &amp; Configuration</h1>
+  <p>Cours PostgreSQL/PostGIS · BakusGéo</p>
+  <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+</header>
+
+<main id="quiz-area"></main>
+<div id="results" style="max-width:780px;margin:40px auto 60px;padding:0 16px;"></div>
+
+<footer>
+  <strong>BakusGéo</strong> — Cours PostgreSQL / PostGIS · Module 2
+</footer>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Quel est le port TCP/IP utilisé par défaut par PostgreSQL pour accepter les connexions ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "3306 (utilisé par MySQL)",
+      "5432 (port standard PostgreSQL)",
+      "1521 (utilisé par Oracle Database)",
+      "8080 (port HTTP alternatif)"
+    ],
+    correct: 1,
+    feedback: {
+      ok: "Exact ! PostgreSQL écoute par défaut sur le port 5432. Ce numéro est inscrit dans postgresql.conf (paramètre port). Il peut être modifié, mais 5432 est la convention universelle — vos outils (pgAdmin, psql, QGIS) l'utilisent automatiquement.",
+      ko: "La bonne réponse est B. PostgreSQL utilise le port 5432 par défaut. MySQL utilise 3306, Oracle 1521. Retenez 5432 : c'est la valeur par défaut dans postgresql.conf et dans tous les clients PostgreSQL."
+    }
+  },
+  {
+    q: "Quel fichier de configuration PostgreSQL contrôle les méthodes d'authentification des clients ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "postgresql.conf — paramètres généraux du serveur",
+      "recovery.conf — paramètres de restauration",
+      "pg_hba.conf — Host-Based Authentication",
+      "pg_ident.conf — correspondance de noms d'utilisateurs"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Parfait ! pg_hba.conf (Host-Based Authentication) définit qui peut se connecter, depuis quelle adresse, à quelle base, et avec quelle méthode (trust, md5, scram-sha-256, peer…). C'est le gardien de l'accès à PostgreSQL.",
+      ko: "La bonne réponse est C. pg_hba.conf est le fichier d'authentification basée sur l'hôte. postgresql.conf gère les paramètres moteur (mémoire, logs, port). Ne confondez pas les deux !"
+    }
+  },
+  {
+    q: "Dans le client psql, quelle méta-commande affiche la liste de toutes les bases de données du serveur ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "\\d  — liste les objets du schéma courant",
+      "\\l  — list databases",
+      "\\dt — liste les tables du schéma courant",
+      "\\s  — affiche l'historique des commandes"
+    ],
+    correct: 1,
+    feedback: {
+      ok: "Correct ! \\l (ou \\list) affiche toutes les bases avec leur propriétaire, encodage et collationnement. Mnémotechnique : \\l pour List. La commande SQL équivalente est : SELECT datname FROM pg_database;",
+      ko: "La bonne réponse est B. \\l liste les bases de données. Retenez : \\l = List databases, \\d = Describe objects, \\dt = list Tables, \\du = list Users. Ces quatre méta-commandes sont essentielles dans psql."
+    }
+  },
+  {
+    q: "Comment se connecter à la base geoville sans quitter une session psql déjà ouverte ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "USE geoville;",
+      "CONNECT TO geoville;",
+      "\\c geoville",
+      "SWITCH DATABASE geoville;"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Exact ! \\c geoville (ou \\connect geoville) change de base de données dans psql sans fermer la session. Vous pouvez aussi changer d'utilisateur : \\c geoville postgres. C'est bien plus rapide que de se déconnecter et reconnecter.",
+      ko: "La bonne réponse est C. Dans psql, on utilise \\c (connect) pour changer de base. USE est la syntaxe MySQL, CONNECT TO n'existe pas en SQL standard PostgreSQL. Retenez : backslash + c = connect."
+    }
+  },
+  {
+    q: "Quel paramètre de postgresql.conf définit les adresses IP sur lesquelles PostgreSQL accepte les connexions entrantes ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "bind_address",
+      "server_host",
+      "listen_addresses",
+      "network_interface"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Parfait ! listen_addresses = 'localhost' (par défaut) limite les connexions à la machine locale. Pour autoriser les connexions distantes : listen_addresses = '*'. Attention : après modification de postgresql.conf, un redémarrage du service est nécessaire.",
+      ko: "La bonne réponse est C. listen_addresses dans postgresql.conf détermine sur quelles interfaces réseau PostgreSQL écoute. Par défaut c'est 'localhost' (connexions locales uniquement). Pour les serveurs en réseau, on le passe à '*' ou à une IP spécifique."
+    }
+  },
+  {
+    q: "Dans pg_hba.conf, quelle méthode d'authentification autorise la connexion SANS mot de passe (à proscrire en production) ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "trust — connexion acceptée sans vérification",
+      "peer — vérifie le nom d'utilisateur système",
+      "scram-sha-256 — authentification par hachage sécurisé",
+      "reject — refuse toute connexion"
+    ],
+    correct: 0,
+    feedback: {
+      ok: "Exact ! trust accepte toute connexion sans demander de mot de passe. Utile en développement local, mais dangereux en production : n'importe qui ayant accès au réseau peut se connecter. En production, utilisez scram-sha-256 (méthode recommandée depuis PostgreSQL 14).",
+      ko: "La bonne réponse est A. trust = confiance totale, aucun mot de passe demandé. C'est la méthode la plus permissive. peer vérifie l'identité système (Linux uniquement), scram-sha-256 est sécurisé, reject refuse tout. Ne jamais utiliser trust sur un serveur exposé."
+    }
+  },
+  {
+    q: "Quelle méta-commande psql affiche la structure d'une table (colonnes, types et contraintes) ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "\\desc zones_admin",
+      "\\show zones_admin",
+      "DESCRIBE zones_admin;",
+      "\\d zones_admin"
+    ],
+    correct: 3,
+    feedback: {
+      ok: "Correct ! \\d nom_table (Describe) affiche les colonnes, leurs types, les valeurs par défaut et les contraintes. \\d+ donne encore plus de détails (taille, description). DESCRIBE est la syntaxe MySQL — elle n'existe pas dans PostgreSQL.",
+      ko: "La bonne réponse est D. Dans psql, \\d zones_admin décrit la table. DESCRIBE n'est pas une commande PostgreSQL (c'est MySQL). Retenez : backslash + d + nom_table = structure de la table."
+    }
+  },
+  {
+    q: "Quel rôle PostgreSQL dispose de TOUS les privilèges et contourne toutes les vérifications de sécurité ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "Le rôle admin créé automatiquement à l'installation",
+      "Le rôle root, équivalent du superutilisateur Linux",
+      "Le rôle dba (Database Administrator) par convention",
+      "Le rôle superuser — par défaut, c'est l'utilisateur postgres"
+    ],
+    correct: 3,
+    feedback: {
+      ok: "Parfait ! Le superuser PostgreSQL contourne toutes les vérifications de droits (GRANT, RLS, etc.). Par défaut, l'utilisateur postgres est superuser. En production, créez des rôles dédiés avec des privilèges limités et n'utilisez postgres qu'en dernier recours.",
+      ko: "La bonne réponse est D. PostgreSQL utilise le terme 'superuser' (attribut de rôle). Il n'existe pas de rôle 'root' ou 'admin' par défaut. L'utilisateur postgres créé à l'installation est superuser. Créez des rôles métier avec des droits restreints pour la production."
+    }
+  },
+  {
+    q: "Dans pgAdmin 4, quelle touche (ou bouton) permet d'exécuter la requête SQL présente dans l'éditeur ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "Ctrl+Enter",
+      "Ctrl+Shift+E",
+      "F5 (ou le bouton ▶ Exécuter dans la barre d'outils)",
+      "Ctrl+R"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Exact ! F5 est le raccourci universel d'exécution dans pgAdmin 4. Le bouton ▶ dans la barre d'outils fait la même chose. Résultat SELECT → onglet Données. Requête DDL/DML → onglet Messages. Retenez aussi F7 pour EXPLAIN et F8 pour EXPLAIN ANALYZE.",
+      ko: "La bonne réponse est C. F5 exécute la requête dans pgAdmin. C'est le raccourci le plus important à mémoriser. Attention : Ctrl+Enter fonctionne dans certains outils (DBeaver, DataGrip) mais pas dans pgAdmin. Dans pgAdmin, c'est F5."
+    }
+  },
+  {
+    q: "Pourquoi est-il recommandé d'utiliser TEMPLATE template0 lors de la création d'une base avec un encodage spécifique ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "template0 est plus rapide à copier car il contient moins d'objets",
+      "template0 permet d'activer PostGIS automatiquement lors de la création",
+      "template0 est vierge et garantit la compatibilité d'encodage — template1 peut contenir des objets dont l'encodage entre en conflit",
+      "template0 crée automatiquement un rôle propriétaire dédié à la nouvelle base"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Parfait ! template0 est la base modèle d'origine, jamais modifiée, sans objets utilisateur. Cela garantit qu'aucun conflit d'encodage ou de collationnement ne peut survenir. La commande complète : CREATE DATABASE geoville ENCODING 'UTF8' LC_COLLATE 'fr_FR.UTF-8' TEMPLATE template0;",
+      ko: "La bonne réponse est C. template1 peut avoir été modifié (ajout d'extensions, de tables système supplémentaires) et son encodage peut conflictuer avec celui demandé. template0 est toujours vierge : c'est la copie de sécurité originale de PostgreSQL."
+    }
+  }
+];
+
+let current = 0, score = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let submitted = new Array(QUESTIONS.length).fill(false);
+const quizArea = document.getElementById('quiz-area');
+const resultsEl = document.getElementById('results');
+
+function renderAll() {
+  quizArea.innerHTML = '';
+  QUESTIONS.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'card' + (qi === 0 ? ' active' : '');
+    card.id = `card-${qi}`;
+    card.innerHTML = `
+      <div class="q-num">Question ${qi+1} sur ${QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+      ${q.hint ? `<div class="q-hint">${q.hint}</div>` : ''}
+      <ul class="options" id="opts-${qi}">
+        ${q.options.map((opt, oi) => `
+          <li>
+            <input type="radio" name="q${qi}" id="q${qi}o${oi}" value="${oi}">
+            <label for="q${qi}o${oi}"><span class="dot"></span>${opt}</label>
+          </li>`).join('')}
+      </ul>
+      <div class="feedback" id="fb-${qi}"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="submit-${qi}" onclick="submitAnswer(${qi})" disabled>Valider ma réponse</button>
+        <button class="btn btn-next" id="next-${qi}" onclick="nextQuestion(${qi})" style="display:none">
+          ${qi < QUESTIONS.length-1 ? 'Question suivante →' : 'Voir mes résultats →'}
+        </button>
+      </div>`;
+    quizArea.appendChild(card);
+    q.options.forEach((_, oi) => {
+      document.getElementById(`q${qi}o${oi}`).addEventListener('change', () => {
+        document.getElementById(`submit-${qi}`).disabled = false;
+        answers[qi] = oi;
+      });
+    });
+  });
+  updateProgress();
+}
+
+function submitAnswer(qi) {
+  if (submitted[qi]) return;
+  submitted[qi] = true;
+  const chosen = answers[qi], correct = QUESTIONS[qi].correct;
+  const isCorrect = chosen === correct;
+  if (isCorrect) score++;
+  QUESTIONS[qi].options.forEach((_, oi) => {
+    const lbl = document.querySelector(`#q${qi}o${oi} + label`);
+    if (oi === correct) lbl.classList.add('correct');
+    else if (oi === chosen && !isCorrect) lbl.classList.add('wrong');
+    document.getElementById(`q${qi}o${oi}`).disabled = true;
+  });
+  const fb = document.getElementById(`fb-${qi}`);
+  fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = isCorrect
+    ? `<strong>✅ Bonne réponse !</strong>${QUESTIONS[qi].feedback.ok}`
+    : `<strong>❌ Pas tout à fait…</strong>${QUESTIONS[qi].feedback.ko}
+       <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f5c6cb;">
+         <span style="font-size:.9rem;display:block;margin-bottom:8px;">Voulez-vous réessayer ?</span>
+         <button class="btn btn-reset" onclick="retryQuestion(${qi})" style="font-size:.9rem;padding:8px 18px;">🔄 Réessayer</button>
+       </div>`;
+  fb.style.display = 'block';
+  document.getElementById(`submit-${qi}`).style.display = 'none';
+  document.getElementById(`next-${qi}`).style.display = 'inline-block';
+}
+
+function nextQuestion(qi) {
+  document.getElementById(`card-${qi}`).classList.remove('active');
+  if (qi + 1 < QUESTIONS.length) {
+    current = qi + 1;
+    document.getElementById(`card-${current}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else { showResults(); }
+  updateProgress();
+}
+
+function updateProgress() {
+  document.getElementById('progress-bar').style.width = (current / QUESTIONS.length * 100) + '%';
+}
+
+function showResults() {
+  quizArea.style.display = 'none';
+  resultsEl.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  let grade, circleClass, emoji, msg;
+  if (pct >= 90)      { grade='A'; circleClass='score-A'; emoji='🏆'; msg='Excellent ! Vous maîtrisez parfaitement l\'installation et la configuration de PostgreSQL. Passez au Module 3 !'; }
+  else if (pct >= 70) { grade='B'; circleClass='score-B'; emoji='👍'; msg='Bon résultat ! Relisez les sections pg_hba.conf et les méta-commandes psql avant de continuer.'; }
+  else if (pct >= 50) { grade='C'; circleClass='score-C'; emoji='📚'; msg='Résultat moyen. Reprenez les sections sur la configuration et les commandes psql du Module 2.'; }
+  else                 { grade='D'; circleClass='score-D'; emoji='🔁'; msg='Ce module nécessite une révision complète. Reprenez depuis l\'installation et pratiquez dans psql.'; }
+  const breakdown = QUESTIONS.map((q, qi) => {
+    const ok = answers[qi] === q.correct;
+    return `<div class="breakdown-item">
+      <span class="icon">${ok ? '✅' : '❌'}</span>
+      <div>
+        <div>Question ${qi+1} : ${q.q.substring(0,70)}…</div>
+        <div class="q-label">${ok ? 'Bonne réponse' : `Vous : "${q.options[answers[qi]]?.substring(0,50) ?? '—'}…"`}</div>
+      </div>
+    </div>`;
+  }).join('');
+  resultsEl.innerHTML = `
+    <div class="score-circle ${circleClass}">
+      <span>${score}/${QUESTIONS.length}</span>
+      <span class="score-label">${pct}%</span>
+    </div>
+    <h2>${emoji} ${grade==='A'?'Félicitations !':grade==='B'?'Bon travail !':grade==='C'?'Peut mieux faire':'À réviser'}</h2>
+    <p class="msg">${msg}</p>
+    <div class="btn-row" style="justify-content:center;margin-bottom:32px;">
+      <button class="btn btn-reset" onclick="resetQuiz()">🔁 Recommencer</button>
+      <a href="quiz-module-3.html" class="btn btn-next" style="text-decoration:none;display:inline-block">Module 3 →</a>
+    </div>
+    <div class="breakdown"><h3>Récapitulatif</h3>${breakdown}</div>`;
+}
+
+function retryQuestion(qi) {
+  answers[qi] = null; submitted[qi] = false;
+  QUESTIONS[qi].options.forEach((_, oi) => {
+    const radio = document.getElementById(`q${qi}o${oi}`);
+    radio.disabled = false; radio.checked = false;
+    document.querySelector(`#q${qi}o${oi} + label`).classList.remove('correct','wrong');
+  });
+  document.getElementById(`fb-${qi}`).style.display = 'none';
+  document.getElementById(`submit-${qi}`).style.display = 'inline-block';
+  document.getElementById(`submit-${qi}`).disabled = true;
+  document.getElementById(`next-${qi}`).style.display = 'none';
+}
+
+function resetQuiz() {
+  current = 0; score = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  submitted = new Array(QUESTIONS.length).fill(false);
+  resultsEl.style.display = 'none'; quizArea.style.display = 'block';
+  renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderAll();
+</script>
+</body>
+</html>
