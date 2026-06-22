@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Module 3 — SQL DDL, DML, SELECT | BakusGéo</title>
+<style>
+  :root {
+    --blue1: #1F4E79;
+    --blue2: #2E75B6;
+    --blue3: #EBF3FA;
+    --green: #28A745;
+    --red:   #DC3545;
+    --gold:  #FFC107;
+    --gray:  #6C757D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    background: linear-gradient(135deg, #EBF3FA 0%, #ffffff 100%);
+    min-height: 100vh;
+    color: #222;
+  }
+  .module-nav {
+    background: #163A5F;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .module-nav a {
+    color: rgba(255,255,255,.7);
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.25);
+    transition: background .2s, color .2s;
+  }
+  .module-nav a:hover { background: rgba(255,255,255,.15); color: white; }
+  .module-nav a.active { background: var(--blue2); color: white; border-color: var(--blue2); }
+
+  header {
+    background: var(--blue1);
+    color: white;
+    padding: 28px 20px 20px;
+    text-align: center;
+  }
+  header .badge {
+    display: inline-block;
+    background: var(--blue2);
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  header h1 { font-size: 1.8rem; margin-bottom: 6px; }
+  header p  { font-size: 1rem; opacity: .85; font-style: italic; }
+  .progress-bar-wrap {
+    background: rgba(255,255,255,.2);
+    border-radius: 20px;
+    height: 8px;
+    margin: 18px auto 0;
+    max-width: 400px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    background: var(--gold);
+    height: 100%;
+    width: 0%;
+    transition: width .4s ease;
+    border-radius: 20px;
+  }
+  main { max-width: 780px; margin: 40px auto 60px; padding: 0 16px; }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(31,78,121,.12);
+    padding: 36px 40px;
+    margin-bottom: 28px;
+    display: none;
+    animation: fadeIn .35s ease;
+  }
+  .card.active { display: block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+  .q-num  { font-family:Arial,sans-serif; font-size:12px; color:var(--blue2); font-weight:bold; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; }
+  .q-text { font-size:1.15rem; line-height:1.6; color:var(--blue1); font-weight:bold; margin-bottom:24px; }
+  .q-hint { font-size:.9rem; font-style:italic; color:var(--gray); margin-top:-16px; margin-bottom:20px; }
+
+  /* code inline dans les questions */
+  .q-text code, .options label code {
+    font-family: 'Courier New', monospace;
+    background: #f0f4f8;
+    border: 1px solid #d0dde8;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: .92em;
+    color: #1a3a5c;
+  }
+
+  .options { list-style:none; }
+  .options li { margin-bottom:12px; }
+  .options label { display:flex; align-items:flex-start; gap:14px; padding:14px 18px; border:2px solid #dee2e6; border-radius:8px; cursor:pointer; transition:border-color .2s,background .2s; font-size:1rem; line-height:1.5; }
+  .options label:hover { border-color:var(--blue2); background:var(--blue3); }
+  .options input[type="radio"] { display:none; }
+  .options input[type="radio"] + label .dot { flex-shrink:0; width:22px; height:22px; border:2px solid #adb5bd; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-top:1px; transition:border-color .2s,background .2s; }
+  .options input[type="radio"]:checked + label .dot { border-color:var(--blue2); background:var(--blue2); }
+  .options input[type="radio"]:checked + label .dot::after { content:''; width:8px; height:8px; background:white; border-radius:50%; }
+  .options input[type="radio"]:checked + label { border-color:var(--blue2); background:var(--blue3); }
+  .options label.correct  { border-color:var(--green)!important; background:#e8f8e8!important; }
+  .options label.wrong    { border-color:var(--red)!important;   background:#ffe8e8!important; }
+  .options label.correct .dot { border-color:var(--green)!important; background:var(--green)!important; }
+  .options label.wrong   .dot { border-color:var(--red)!important;   background:var(--red)!important; }
+
+  .feedback { margin-top:20px; padding:16px 20px; border-radius:8px; font-size:.95rem; line-height:1.6; display:none; }
+  .feedback.correct { background:#d4edda; border-left:5px solid var(--green); color:#155724; }
+  .feedback.wrong   { background:#f8d7da; border-left:5px solid var(--red);   color:#721c24; }
+  .feedback strong  { display:block; margin-bottom:4px; }
+  .feedback code    { font-family:'Courier New',monospace; background:rgba(0,0,0,.08); border-radius:3px; padding:1px 5px; font-size:.9em; }
+
+  .btn-row { margin-top:28px; display:flex; gap:12px; flex-wrap:wrap; }
+  .btn { padding:12px 28px; border:none; border-radius:8px; font-size:1rem; font-family:Arial,sans-serif; cursor:pointer; transition:transform .15s,box-shadow .15s; }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.15); }
+  .btn-primary { background:var(--blue1); color:white; }
+  .btn-next    { background:var(--blue2); color:white; }
+  .btn-reset   { background:white; border:2px solid var(--blue2); color:var(--blue2); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  #results { display:none; background:white; border-radius:12px; box-shadow:0 4px 24px rgba(31,78,121,.12); padding:48px 40px; text-align:center; animation:fadeIn .4s ease; }
+  .score-circle { width:130px; height:130px; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto 28px; font-size:2.2rem; font-weight:bold; font-family:Arial,sans-serif; border:6px solid; }
+  .score-circle .score-label { font-size:.75rem; font-weight:normal; letter-spacing:1px; }
+  .score-A { border-color:var(--green); color:var(--green); background:#e8f8e8; }
+  .score-B { border-color:var(--blue2); color:var(--blue2); background:var(--blue3); }
+  .score-C { border-color:var(--gold);  color:#856404;      background:#fff3cd; }
+  .score-D { border-color:var(--red);   color:var(--red);   background:#ffe8e8; }
+  #results h2 { font-size:1.7rem; color:var(--blue1); margin-bottom:10px; }
+  #results .msg { font-size:1.05rem; color:#444; margin-bottom:32px; max-width:500px; margin-left:auto; margin-right:auto; }
+  .breakdown { text-align:left; border-top:1px solid #dee2e6; padding-top:24px; margin-top:8px; }
+  .breakdown h3 { color:var(--blue1); margin-bottom:16px; font-size:1.1rem; }
+  .breakdown-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:.92rem; }
+  .breakdown-item .icon { font-size:1.2rem; flex-shrink:0; }
+  .breakdown-item .q-label { color:var(--gray); font-size:.82rem; }
+
+  footer { text-align:center; padding:24px; font-family:Arial,sans-serif; font-size:.85rem; color:var(--gray); }
+  footer strong { color:var(--blue1); }
+</style>
+</head>
+<body>
+
+<nav class="module-nav">
+  <a href="index.html">Module 1 — Introduction</a>
+  <a href="quiz-module-2.html">Module 2 — Installation</a>
+  <a href="quiz-module-3.html" class="active">Module 3 — SQL DDL/DML</a>
+</nav>
+
+<header>
+  <div class="badge">Module 3 — Niveau Débutant</div>
+  <h1>Quiz — SQL Fondamental : DDL, DML &amp; SELECT</h1>
+  <p>Cours PostgreSQL/PostGIS · BakusGéo</p>
+  <div class="progress-bar-wrap"><div id="progress-bar"></div></div>
+</header>
+
+<main id="quiz-area"></main>
+<div id="results" style="max-width:780px;margin:40px auto 60px;padding:0 16px;"></div>
+
+<footer>
+  <strong>BakusGéo</strong> — Cours PostgreSQL / PostGIS · Module 3
+</footer>
+
+<script>
+const QUESTIONS = [
+  {
+    q: "Quelle est la différence fondamentale entre DDL et DML en SQL ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "DDL s'exécute plus rapidement que DML car il ne touche pas aux données",
+      "DML modifie la structure des tables ; DDL manipule les données",
+      "DDL (Data Definition Language) définit la structure — CREATE, ALTER, DROP ; DML (Data Manipulation Language) manipule les données — INSERT, UPDATE, DELETE",
+      "Il n'y a aucune différence : DDL et DML sont synonymes dans PostgreSQL"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Parfait ! DDL = structure (CREATE TABLE, ALTER TABLE, DROP TABLE) — ces commandes sont auto-validées (pas besoin de COMMIT). DML = données (INSERT, UPDATE, DELETE, SELECT) — ces commandes sont transactionnelles et nécessitent un COMMIT explicite (ou implicite en mode autocommit).",
+      ko: "La bonne réponse est C. DDL (Data Definition Language) agit sur la structure des objets de la base. DML (Data Manipulation Language) agit sur les données. Il existe aussi DQL (SELECT) et DCL (GRANT, REVOKE). Ce classement est fondamental en SQL."
+    }
+  },
+  {
+    q: "Quelle contrainte SQL garantit qu'une colonne ne peut pas contenir deux fois la même valeur, mais autorise la valeur NULL ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "PRIMARY KEY — unicité + NOT NULL obligatoires",
+      "NOT NULL — interdit les valeurs nulles uniquement",
+      "CHECK — valide une condition logique",
+      "UNIQUE — unicité garantie, NULL autorisé"
+    ],
+    correct: 3,
+    feedback: {
+      ok: "Exact ! UNIQUE garantit l'unicité des valeurs non nulles. Plusieurs lignes peuvent avoir NULL car NULL ≠ NULL en SQL. PRIMARY KEY = UNIQUE + NOT NULL. Exemple dans GéoVille : le code_postal d'une zone est unique mais pourrait être inconnu (NULL) pour une zone en construction.",
+      ko: "La bonne réponse est D. UNIQUE = unicité des valeurs non nulles (plusieurs NULL sont tolérés). PRIMARY KEY = UNIQUE + NOT NULL (aucun NULL autorisé). Ce sont deux contraintes distinctes avec des comportements différents."
+    }
+  },
+  {
+    q: "Dans GéoVille, vous souhaitez insérer 3 zones administratives en une seule requête INSERT. Quelle syntaxe est correcte ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "INSERT INTO zones_admin VALUES (…), VALUES (…), VALUES (…);",
+      "INSERT MULTIPLE INTO zones_admin (nom_zone, type_zone) VALUES (…)(…)(…);",
+      "INSERT INTO zones_admin (nom_zone, type_zone) VALUES ('Centre', 'commercial'), ('Nord', 'résidentiel'), ('Sud', 'industriel');",
+      "ADD INTO zones_admin (nom_zone, type_zone) VALUES ('Centre'), ('Nord'), ('Sud');"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Correct ! L'INSERT multi-valeurs est la syntaxe SQL standard : INSERT INTO table (col1, col2) VALUES (v1, v2), (v3, v4), (v5, v6); C'est bien plus performant que 3 INSERT séparés car PostgreSQL ne fait qu'un seul parsing et une seule écriture en transaction.",
+      ko: "La bonne réponse est C. La syntaxe correcte est VALUES (…), (…), (…) avec les valeurs séparées par des virgules — pas le mot VALUES répété. INSERT MULTIPLE et ADD INTO n'existent pas en SQL standard."
+    }
+  },
+  {
+    q: "Vous souhaitez modifier le type de zone de 'résidentiel' à 'mixte' uniquement pour la zone dont l'id_zone vaut 3. Quelle requête est correcte ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "MODIFY zones_admin SET type_zone = 'mixte' WHERE id_zone = 3;",
+      "UPDATE zones_admin SET type_zone = 'mixte' WHERE id_zone = 3;",
+      "UPDATE zones_admin WHERE id_zone = 3 SET type_zone = 'mixte';",
+      "CHANGE zones_admin SET type_zone = 'mixte' FOR id_zone = 3;"
+    ],
+    correct: 1,
+    feedback: {
+      ok: "Parfait ! La syntaxe UPDATE est : UPDATE table SET col = valeur WHERE condition; L'ordre des clauses est fixe : SET avant WHERE. Sans la clause WHERE, TOUTES les lignes seraient modifiées — c'est le piège classique de l'UPDATE sans filtre !",
+      ko: "La bonne réponse est B. La syntaxe PostgreSQL est UPDATE … SET … WHERE … dans cet ordre impératif. MODIFY et CHANGE n'existent pas en SQL standard. L'option C inverse SET et WHERE — PostgreSQL retournerait une erreur de syntaxe."
+    }
+  },
+  {
+    q: "Quelle est la différence principale entre DELETE FROM zones_admin et TRUNCATE TABLE zones_admin ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "Il n'y a aucune différence, les deux suppriment toutes les lignes de la même façon",
+      "TRUNCATE supprime uniquement la première ligne ; DELETE supprime toutes les lignes",
+      "DELETE est réservé aux tables temporaires ; TRUNCATE aux tables permanentes",
+      "DELETE est transactionnel et filtrable avec WHERE ; TRUNCATE est plus rapide, non filtrable, et réinitialise les séquences"
+    ],
+    correct: 3,
+    feedback: {
+      ok: "Exact ! DELETE supprime ligne par ligne (lent sur de grandes tables), peut être filtré (WHERE), est transactionnel (ROLLBACK possible). TRUNCATE vide la table en une seule opération (très rapide), ne peut pas être filtré, et réinitialise les compteurs SERIAL/IDENTITY. En production, préférez DELETE avec WHERE pour cibler précisément, et TRUNCATE pour vider complètement une table de données de test.",
+      ko: "La bonne réponse est D. DELETE = suppression ciblée, transactionnelle, ligne par ligne. TRUNCATE = vidage complet, ultra-rapide, remet les séquences à zéro. TRUNCATE peut aussi être dans une transaction, mais il ne peut pas être filtré avec WHERE."
+    }
+  },
+  {
+    q: "Dans quel ordre PostgreSQL évalue-t-il réellement les clauses d'une requête SELECT ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY",
+      "FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY",
+      "FROM → SELECT → WHERE → ORDER BY → GROUP BY → HAVING",
+      "WHERE → FROM → SELECT → GROUP BY → ORDER BY → HAVING"
+    ],
+    correct: 1,
+    feedback: {
+      ok: "Parfait ! L'ordre logique d'évaluation est : FROM (source) → WHERE (filtre lignes brutes) → GROUP BY (agrégation) → HAVING (filtre groupes) → SELECT (projection) → ORDER BY (tri final). C'est pourquoi vous ne pouvez pas utiliser un alias SELECT dans une clause WHERE — l'alias n'existe pas encore à l'étape WHERE !",
+      ko: "La bonne réponse est B. L'ordre d'écriture (SELECT … FROM … WHERE) ≠ l'ordre d'évaluation (FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY). Ce point explique pourquoi un alias défini dans SELECT n'est pas accessible dans WHERE mais l'est dans ORDER BY."
+    }
+  },
+  {
+    q: "Dans GéoVille, vous voulez afficher uniquement les types de zone ayant PLUS DE 2 bâtiments. Quelle clause utilisez-vous pour filtrer APRÈS l'agrégation ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "WHERE COUNT(id_batiment) > 2",
+      "FILTER COUNT(id_batiment) > 2",
+      "HAVING COUNT(id_batiment) > 2",
+      "WHEN COUNT(id_batiment) > 2"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Exact ! HAVING filtre les groupes APRÈS l'agrégation GROUP BY. WHERE filtre les lignes AVANT l'agrégation. Requête complète : SELECT type_zone, COUNT(id_batiment) FROM batiments JOIN zones_admin USING (id_zone) GROUP BY type_zone HAVING COUNT(id_batiment) > 2;",
+      ko: "La bonne réponse est C. HAVING est la clause de filtrage POST-agrégation. WHERE filtre avant GROUP BY (donc on ne peut pas y utiliser COUNT). Mnémotechnique : HAVING = filtre sur les agrégats, WHERE = filtre sur les lignes brutes."
+    }
+  },
+  {
+    q: "Quelle est la différence entre INNER JOIN et LEFT JOIN lors de la jointure de zones_admin et batiments ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "INNER JOIN est plus rapide que LEFT JOIN sur les grandes tables",
+      "LEFT JOIN retourne uniquement les lignes de la table batiments (droite)",
+      "INNER JOIN retourne uniquement les zones ayant des bâtiments ; LEFT JOIN retourne TOUTES les zones, même celles sans bâtiment (NULL pour les colonnes de batiments)",
+      "Il n'y a aucune différence : les deux retournent les mêmes lignes"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Parfait ! INNER JOIN = intersection : seules les zones ayant au moins un bâtiment apparaissent. LEFT JOIN = toutes les zones apparaissent ; les colonnes de batiments valent NULL pour les zones sans bâtiment. En urbanisme, un LEFT JOIN permet de lister les zones non construites — information précieuse pour la planification !",
+      ko: "La bonne réponse est C. INNER JOIN ≠ LEFT JOIN en termes de lignes retournées. INNER JOIN : uniquement les lignes avec correspondance dans les deux tables. LEFT JOIN : toutes les lignes de la table gauche, même sans correspondance (NULL à droite). RIGHT JOIN et FULL OUTER JOIN sont les autres variantes."
+    }
+  },
+  {
+    q: "Dans une transaction PostgreSQL, que se passe-t-il si vous exécutez ROLLBACK après plusieurs UPDATE ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "Toutes les modifications sont validées et sauvegardées définitivement",
+      "La connexion au serveur PostgreSQL est fermée",
+      "Uniquement le dernier UPDATE est annulé",
+      "Toutes les modifications effectuées depuis le BEGIN sont annulées — la base revient à son état initial"
+    ],
+    correct: 3,
+    feedback: {
+      ok: "Exact ! C'est la propriété A (Atomicité) d'ACID : tout ou rien. Un ROLLBACK annule TOUTES les opérations depuis le BEGIN, comme si elles n'avaient jamais eu lieu. Dans GéoVille : BEGIN; UPDATE zones_admin SET ... ; UPDATE batiments SET ... ; ROLLBACK; → les deux updates sont annulés.",
+      ko: "La bonne réponse est D. ROLLBACK annule TOUT depuis le BEGIN — c'est le principe d'atomicité (A dans ACID). La connexion reste ouverte. SAVEPOINT permet de créer des points de sauvegarde intermédiaires pour n'annuler qu'une partie de la transaction."
+    }
+  },
+  {
+    q: "Quelle est la syntaxe correcte pour compter le nombre de bâtiments par type de zone dans GéoVille ?",
+    hint: "(Une seule bonne réponse)",
+    options: [
+      "SELECT type_zone, SUM(*) FROM batiments b JOIN zones_admin z ON b.id_zone = z.id_zone GROUP BY type_zone;",
+      "SELECT type_zone, TOTAL(id_batiment) FROM batiments GROUP BY type_zone;",
+      "SELECT type_zone, COUNT(id_batiment) FROM batiments b JOIN zones_admin z ON b.id_zone = z.id_zone GROUP BY type_zone ORDER BY COUNT(id_batiment) DESC;",
+      "SELECT type_zone, NUMBER(id_batiment) FROM batiments GROUP BY type_zone;"
+    ],
+    correct: 2,
+    feedback: {
+      ok: "Parfait ! COUNT(colonne) compte les valeurs non nulles d'une colonne. COUNT(*) compte toutes les lignes (y compris celles avec NULL). La jointure est nécessaire car type_zone est dans zones_admin et id_batiment dans batiments. ORDER BY … DESC trie du plus grand au plus petit — idéal pour un rapport d'urbanisme.",
+      ko: "La bonne réponse est C. La fonction d'agrégation pour compter est COUNT(), pas SUM(*), TOTAL() ou NUMBER(). SUM() additionne des valeurs numériques. COUNT(colonne) ignore les NULL, COUNT(*) les compte. La jointure ON b.id_zone = z.id_zone est obligatoire pour accéder à type_zone."
+    }
+  }
+];
+
+let current = 0, score = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let submitted = new Array(QUESTIONS.length).fill(false);
+const quizArea = document.getElementById('quiz-area');
+const resultsEl = document.getElementById('results');
+
+function renderAll() {
+  quizArea.innerHTML = '';
+  QUESTIONS.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'card' + (qi === 0 ? ' active' : '');
+    card.id = `card-${qi}`;
+    card.innerHTML = `
+      <div class="q-num">Question ${qi+1} sur ${QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+      ${q.hint ? `<div class="q-hint">${q.hint}</div>` : ''}
+      <ul class="options" id="opts-${qi}">
+        ${q.options.map((opt, oi) => `
+          <li>
+            <input type="radio" name="q${qi}" id="q${qi}o${oi}" value="${oi}">
+            <label for="q${qi}o${oi}"><span class="dot"></span>${opt}</label>
+          </li>`).join('')}
+      </ul>
+      <div class="feedback" id="fb-${qi}"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="submit-${qi}" onclick="submitAnswer(${qi})" disabled>Valider ma réponse</button>
+        <button class="btn btn-next" id="next-${qi}" onclick="nextQuestion(${qi})" style="display:none">
+          ${qi < QUESTIONS.length-1 ? 'Question suivante →' : 'Voir mes résultats →'}
+        </button>
+      </div>`;
+    quizArea.appendChild(card);
+    q.options.forEach((_, oi) => {
+      document.getElementById(`q${qi}o${oi}`).addEventListener('change', () => {
+        document.getElementById(`submit-${qi}`).disabled = false;
+        answers[qi] = oi;
+      });
+    });
+  });
+  updateProgress();
+}
+
+function submitAnswer(qi) {
+  if (submitted[qi]) return;
+  submitted[qi] = true;
+  const chosen = answers[qi], correct = QUESTIONS[qi].correct;
+  const isCorrect = chosen === correct;
+  if (isCorrect) score++;
+  QUESTIONS[qi].options.forEach((_, oi) => {
+    const lbl = document.querySelector(`#q${qi}o${oi} + label`);
+    if (oi === correct) lbl.classList.add('correct');
+    else if (oi === chosen && !isCorrect) lbl.classList.add('wrong');
+    document.getElementById(`q${qi}o${oi}`).disabled = true;
+  });
+  const fb = document.getElementById(`fb-${qi}`);
+  fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = isCorrect
+    ? `<strong>✅ Bonne réponse !</strong>${QUESTIONS[qi].feedback.ok}`
+    : `<strong>❌ Pas tout à fait…</strong>${QUESTIONS[qi].feedback.ko}
+       <div style="margin-top:14px;padding-top:12px;border-top:1px solid #f5c6cb;">
+         <span style="font-size:.9rem;display:block;margin-bottom:8px;">Voulez-vous réessayer ?</span>
+         <button class="btn btn-reset" onclick="retryQuestion(${qi})" style="font-size:.9rem;padding:8px 18px;">🔄 Réessayer</button>
+       </div>`;
+  fb.style.display = 'block';
+  document.getElementById(`submit-${qi}`).style.display = 'none';
+  document.getElementById(`next-${qi}`).style.display = 'inline-block';
+}
+
+function nextQuestion(qi) {
+  document.getElementById(`card-${qi}`).classList.remove('active');
+  if (qi + 1 < QUESTIONS.length) {
+    current = qi + 1;
+    document.getElementById(`card-${current}`).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else { showResults(); }
+  updateProgress();
+}
+
+function updateProgress() {
+  document.getElementById('progress-bar').style.width = (current / QUESTIONS.length * 100) + '%';
+}
+
+function showResults() {
+  quizArea.style.display = 'none';
+  resultsEl.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  let grade, circleClass, emoji, msg;
+  if (pct >= 90)      { grade='A'; circleClass='score-A'; emoji='🏆'; msg='Excellent ! Vous maîtrisez le SQL fondamental. Vous êtes prêt(e) pour le Module 4 — Types de données et contraintes avancées !'; }
+  else if (pct >= 70) { grade='B'; circleClass='score-B'; emoji='👍'; msg='Bon résultat ! Relisez les sections sur les transactions et l\'ordre d\'évaluation SQL avant de continuer.'; }
+  else if (pct >= 50) { grade='C'; circleClass='score-C'; emoji='📚'; msg='Résultat moyen. Reprenez les sections DDL et DML du Module 3 et refaites le TP GéoVille.'; }
+  else                 { grade='D'; circleClass='score-D'; emoji='🔁'; msg='Ce module nécessite une révision complète. Reprenez depuis les fondamentaux SQL : CREATE TABLE, INSERT, SELECT, WHERE.'; }
+  const breakdown = QUESTIONS.map((q, qi) => {
+    const ok = answers[qi] === q.correct;
+    return `<div class="breakdown-item">
+      <span class="icon">${ok ? '✅' : '❌'}</span>
+      <div>
+        <div>Question ${qi+1} : ${q.q.substring(0,70)}…</div>
+        <div class="q-label">${ok ? 'Bonne réponse' : `Vous : "${q.options[answers[qi]]?.substring(0,50) ?? '—'}…"`}</div>
+      </div>
+    </div>`;
+  }).join('');
+  resultsEl.innerHTML = `
+    <div class="score-circle ${circleClass}">
+      <span>${score}/${QUESTIONS.length}</span>
+      <span class="score-label">${pct}%</span>
+    </div>
+    <h2>${emoji} ${grade==='A'?'Félicitations !':grade==='B'?'Bon travail !':grade==='C'?'Peut mieux faire':'À réviser'}</h2>
+    <p class="msg">${msg}</p>
+    <div class="btn-row" style="justify-content:center;margin-bottom:32px;">
+      <button class="btn btn-reset" onclick="resetQuiz()">🔁 Recommencer</button>
+      <a href="index.html" class="btn btn-next" style="text-decoration:none;display:inline-block">← Module 1</a>
+    </div>
+    <div class="breakdown"><h3>Récapitulatif</h3>${breakdown}</div>`;
+}
+
+function retryQuestion(qi) {
+  answers[qi] = null; submitted[qi] = false;
+  QUESTIONS[qi].options.forEach((_, oi) => {
+    const radio = document.getElementById(`q${qi}o${oi}`);
+    radio.disabled = false; radio.checked = false;
+    document.querySelector(`#q${qi}o${oi} + label`).classList.remove('correct','wrong');
+  });
+  document.getElementById(`fb-${qi}`).style.display = 'none';
+  document.getElementById(`submit-${qi}`).style.display = 'inline-block';
+  document.getElementById(`submit-${qi}`).disabled = true;
+  document.getElementById(`next-${qi}`).style.display = 'none';
+}
+
+function resetQuiz() {
+  current = 0; score = 0;
+  answers = new Array(QUESTIONS.length).fill(null);
+  submitted = new Array(QUESTIONS.length).fill(false);
+  resultsEl.style.display = 'none'; quizArea.style.display = 'block';
+  renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderAll();
+</script>
+</body>
+</html>
