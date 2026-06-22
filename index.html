@@ -226,9 +226,37 @@
     color: var(--gray);
   }
   footer strong { color: var(--blue1); }
+
+  /* ── Navigation inter-modules ── */
+  .module-nav {
+    background: #163A5F;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .module-nav a {
+    color: rgba(255,255,255,.7);
+    text-decoration: none;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.25);
+    transition: background .2s, color .2s;
+  }
+  .module-nav a:hover { background: rgba(255,255,255,.15); color: white; }
+  .module-nav a.active { background: var(--blue2); color: white; border-color: var(--blue2); }
 </style>
 </head>
 <body>
+
+<nav class="module-nav">
+  <a href="index.html" class="active">Module 1 — Introduction</a>
+  <a href="quiz-module-2.html">Module 2 — Installation</a>
+  <a href="quiz-module-3.html">Module 3 — SQL DDL/DML</a>
+</nav>
 
 <header>
   <div class="badge">Module 1 — Niveau Débutant</div>
